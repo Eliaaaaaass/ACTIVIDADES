@@ -1,0 +1,49 @@
+import network
+import espnow
+from machine import Pin, I2C
+from i2c_lcd import I2cLcd  # Importa la biblioteca I2C_LCD
+import time
+
+# Inicializa la interfaz Wi-Fi en modo Estación
+sta = network.WLAN(network.STA_IF)
+sta.active(True)
+
+# Configura I2C para la pantalla LCD (asumiendo SCL en GPIO22 y SDA en GPIO21)
+i2c = I2C(scl=Pin(22), sda=Pin(21))
+
+# Inicializa la pantalla LCD 16x2 (la dirección I2C es usualmente 0x27 o 0x3F)
+lcd_display = I2cLcd(i2c, 0x27, 2, 16)  # 0x27 es una dirección I2C común para LCD 16x2
+
+# Inicializa ESP-NOW
+e = espnow.ESPNow()
+e.active(True)
+
+# Agrega la dirección MAC del transmisor (cámbiala a la dirección MAC real)
+mac = b'\xd0\xefvY H'  # Dirección MAC de ejemplo del transmisor
+e.add_peer(mac)
+
+# Función para mover el texto de izquierda a derecha
+def def_move(text, delay=0.2):
+    """Función para desplazar el texto de izquierda a derecha como un letrero LED sin espacios"""
+    max_len = 16  # Longitud máxima de la pantalla LCD
+    extended_text = text * 2  # Duplica el texto para que se repita sin espacios
+
+    # Desplazar el texto de manera continua sin espacios
+    while True:
+        for i in range(len(extended_text) - max_len + 1):
+            lcd_display.clear()
+            lcd_display.putstr(extended_text[i:i + max_len])  # Muestra una parte del texto
+            time.sleep(delay)
+
+# Muestra un mensaje inicial en la pantalla LCD
+lcd_display.clear()
+lcd_display.putstr("Esperando mensaje...")
+
+# Bucle principal para recibir mensajes
+while True:
+    host, msg = e.recv()  # Espera hasta recibir un mensaje
+    
+    if msg == b'ON':
+        # Inicia el desplazamiento continuo de texto sin espacios
+        def_move("Elias Manrique.....Jorge Patino......", delay=0.2)
+        print("Mensaje recibido: Nombre 1: Elias")
