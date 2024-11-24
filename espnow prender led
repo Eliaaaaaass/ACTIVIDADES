@@ -1,0 +1,27 @@
+import network
+import espnow
+import machine
+from utime import sleep
+
+sta = network.WLAN(network.STA_IF)
+sta.active(True)
+
+esp = espnow.ESPNow()
+esp.active(True)
+
+led_pin = machine.Pin(22, machine.Pin.OUT)
+
+while True:
+    _,msg = esp.recv()
+    if msg:
+        if msg:
+            print("Turning on LED")
+            led_pin.on()
+            sleep(1)
+            
+        elif msg == b'ledoff':
+            print("Turning off LED")
+        led_pin.off()
+        sleep(1)
+else:
+    print("Unknown message!") 
